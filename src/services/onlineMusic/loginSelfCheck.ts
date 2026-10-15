@@ -19,6 +19,13 @@ const isLoopbackHost = (hostname: string): boolean => (
 
 const MOBILE_UA = /Android|iPhone|iPad|iPod/i;
 
+// The Android APK really runs a loopback API proxy; unrelated local services remain invalid.
+const isAndroidSameOriginProxy = (api: URL): boolean => (
+    window.__FOLIA_RUNTIME_CONFIG__?.androidApiProxyOrigin === window.location.origin
+    && api.origin === window.location.origin
+    && /^\/(netease|kugou|qq)(?:\/|$)/.test(api.pathname)
+);
+
 /**
  * API 地址指向本机却不可能有 API 服务：页面不在本机上，或者跑在手机上（打包进 App 的页面自己可能就在 localhost，
  * 但手机上不会有 API 服务）。常见于照抄 .env.example 的 http://localhost:3000 再部署或打包。
@@ -29,6 +36,7 @@ const isMisplacedLoopbackApi = (remoteBase: string): boolean => {
     try {
         const api = new URL(remoteBase, window.location.href);
         if (!isLoopbackHost(api.hostname)) return false;
+        if (isAndroidSameOriginProxy(api)) return false;
         const userAgent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
         return !isLoopbackHost(window.location.hostname) || MOBILE_UA.test(userAgent);
     } catch {
@@ -52,7 +60,17 @@ const probeRemoteApi = async (providerId: OnlineProviderId, remoteBase: string):
             cache: 'no-store',
             signal: controller?.signal,
         });
-        probe = { ok: true, httpStatus: response.status || null, durationMs: Date.now() - startedAt, error: null };
+        const opaque = response.type === 'opaque' || response.status === 0;
+        const ok = opaque || response.ok === true ||
+            (response.ok === undefined && response.status >= 200 && response.status < 400);
+        probe = ok
+            ? { ok: true, httpStatus: response.status || null, durationMs: Date.now() - startedAt, error: null }
+            : {
+                ok: false,
+                httpStatus: response.status || null,
+                durationMs: Date.now() - startedAt,
+                error: { code: `HTTP_${response.status}`, message: `Backend returned HTTP ${response.status}` },
+            };
     } catch (error) {
         probe = {
             ok: false,

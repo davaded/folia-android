@@ -1,0 +1,8 @@
+<resources>
+    <style name="FoliaTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowBackground">@color/folia_background</item>
+        <item name="android:colorAccent">#B8E0B7</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

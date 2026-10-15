@@ -23,6 +23,8 @@ declare global {
       aiProvider?: 'gemini' | 'openai';
       /** Docker gateway 注入 'docker'；其他部署不带这个字段。 */
       deployment?: 'docker';
+      /** Android APK 的固定同源 API 代理；仅 APK 内的 runtime-config.js 注入。 */
+      androidApiProxyOrigin?: string;
     };
   }
 

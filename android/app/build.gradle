@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'top.izuna.foliamajor.android'
+    compileSdk {
+        version = release(37)
+    }
+
+    defaultConfig {
+        applicationId 'top.izuna.foliamajor.android'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '0.7.19-android.1'
+        def apiOrigin = providers.gradleProperty('foliaApiOrigin').orElse(providers.environmentVariable('FOLIA_ANDROID_API_ORIGIN')).getOrElse('')
+        buildConfigField 'String', 'FOLIA_ANDROID_API_ORIGIN', '"' + apiOrigin.replace('\\', '\\\\').replace('"', '\\"') + '"'
+        ndk { abiFilters 'x86_64' }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures { buildConfig true }
+    buildTypes {
+        release { minifyEnabled false }
+    }
+    packaging {
+        jniLibs { useLegacyPackaging false }
+        resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
+    }
+}
+
+dependencies {
+    // Official stable metadata checked on 2026-10-15; this is bundled, not system WebView.
+    implementation 'org.mozilla.geckoview:geckoview:158.0.20261007201254'
+}

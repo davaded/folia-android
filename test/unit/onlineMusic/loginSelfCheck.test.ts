@@ -46,6 +46,37 @@ describe('provider login self-check entry', () => {
         });
     });
 
+    it('probes the APK native proxy while rejecting other services on the device', async () => {
+        const location = new URL('http://127.0.0.1:18739/');
+        vi.stubGlobal('window', {
+            location,
+            __FOLIA_RUNTIME_CONFIG__: { androidApiProxyOrigin: location.origin },
+        });
+        vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (Android 13) Gecko/158 Firefox/158' });
+        const fetchMock = vi.fn().mockResolvedValue({ status: 200 });
+        vi.stubGlobal('fetch', fetchMock);
+        await expect(runLoginSelfCheck('netease', '/netease')).resolves.toMatchObject({ backend: { probe: { ok: true } } });
+        await expect(runLoginSelfCheck('qq', 'http://127.0.0.1:3000/qq')).resolves.toMatchObject({
+            backend: { probe: { ok: false, error: { code: 'ELOOPBACK' } } },
+        });
+        await expect(runLoginSelfCheck('qq', '/other-service')).resolves.toMatchObject({
+            backend: { probe: { ok: false, error: { code: 'ELOOPBACK' } } },
+        });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report the APK proxy as reachable when it returns a backend error', async () => {
+        vi.stubGlobal('window', {
+            location: new URL('http://127.0.0.1:18739/'),
+            __FOLIA_RUNTIME_CONFIG__: { androidApiProxyOrigin: 'http://127.0.0.1:18739' },
+        });
+        vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (Android 13)' });
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ type: 'basic', status: 503, ok: false }));
+        await expect(runLoginSelfCheck('netease', '/netease')).resolves.toMatchObject({
+            backend: { probe: { ok: false, httpStatus: 503, error: { code: 'HTTP_503' } } },
+        });
+    });
+
     it('flags an API address on this device when no API can run here, without probing it', async () => {
         const fetchMock = vi.fn().mockResolvedValue({ status: 0 });
         vi.stubGlobal('fetch', fetchMock);
