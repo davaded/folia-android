@@ -38,6 +38,7 @@ import { useThemeSettingsStore } from '../../../stores/useThemeSettingsStore';
 import { useStageSettingsStore } from '../../../stores/useStageSettingsStore';
 import { useLibraryWallLookStore } from '../../../stores/useLibraryWallLookStore';
 import { isLibraryWallSeamStyle } from '../../../utils/libraryWallSeamStyle';
+import { areAiFeaturesAvailable, isAndroidApkRuntime } from '../../../services/runtimeConfig';
 
 // src/components/modal/settings/AppearanceSettingsSubview.tsx
 // Visual settings subview for theme presets, lyric renderer entry, layout settings, and configurations import/export.
@@ -139,6 +140,9 @@ const AppearanceSettingsSubview: React.FC<AppearanceSettingsSubviewProps> = ({
     // OBS static URL points to this web deploy, so the copy button is web-only (no shareable URL under Electron).
     // The link follows the selected web stage source (Now Playing / PlayerCap); disabled when none is on.
     const isElectron = typeof window !== 'undefined' && Boolean((window as { electron?: unknown }).electron);
+    // 车机 APK 不接 OBS；也没有 AI 推断，主题来源固定为封面取色，来源选择整块不显示。
+    const showWebObsButtons = !isElectron && !isAndroidApkRuntime();
+    const showThemeGenerationSource = areAiFeaturesAvailable();
     const webObsSource = useStageSettingsStore(selectWebObsSource);
     const [importText, setImportText] = useState('');
     const [copiedType, setCopiedType] = useState<'none' | 'shortcode' | 'json' | 'obsurl'>('none');
@@ -775,60 +779,62 @@ const AppearanceSettingsSubview: React.FC<AppearanceSettingsSubviewProps> = ({
                             <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{t('options.customTheme') || 'Custom'}</span>
                         </button>
                     </div>
-                    <div className={`p-3 rounded-xl border space-y-3 ${settingsCardClass}`}>
-                        <div className="space-y-1">
-                            <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                                {t('options.themeGenerationSource')}
-                            </div>
-                            <div className="text-xs opacity-50" style={{ color: 'var(--text-secondary)' }}>
-                                {t(themeGenerationSource === 'cover'
-                                    ? 'options.themeGenerationSourceCoverDesc'
-                                    : 'options.themeGenerationSourceAiDesc')}
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            {(['ai', 'cover'] as ThemeGenerationSource[]).map(source => {
-                                const isAiDisabled = source === 'ai' && aiApiKeyStatus !== 'configured';
-                                return (
-                                    <button
-                                        key={source}
-                                        type="button"
-                                        onClick={() => onChangeThemeGenerationSource(source)}
-                                        aria-pressed={themeGenerationSource === source}
-                                        disabled={isAiDisabled}
-                                        className="px-3 py-2 rounded-lg border text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
-                                        style={{
-                                            ...getAccentOptionStyle(themeGenerationSource === source),
-                                            color: 'var(--text-primary)',
-                                            backgroundColor: themeGenerationSource === source
-                                                ? (isDaylight ? `${accentOutlineColor}12` : `${accentOutlineColor}18`)
-                                                : (isDaylight ? 'rgba(24, 24, 27, 0.035)' : 'rgba(9, 9, 11, 0.5)'),
-                                        }}
-                                    >
-                                        {t(source === 'cover' ? 'options.themeGenerationSourceCover' : 'options.themeGenerationSourceAi')}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        {aiApiKeyStatus === 'missing' && (
-                            <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2.5 text-xs">
-                                <KeyRound size={15} className="mt-0.5 shrink-0 text-amber-500" />
-                                <div className="space-y-1.5">
-                                    <p className={`leading-relaxed ${isDaylight ? 'text-amber-600' : 'text-amber-400'}`}>
-                                        {t('options.themeGenerationSourceAiUnavailable')}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={onOpenAiSettings}
-                                        className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-75"
-                                        style={{ color: 'var(--text-primary)' }}
-                                    >
-                                        {t('options.configureAiApiKey')}
-                                    </button>
+                    {showThemeGenerationSource && (
+                        <div className={`p-3 rounded-xl border space-y-3 ${settingsCardClass}`}>
+                            <div className="space-y-1">
+                                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    {t('options.themeGenerationSource')}
+                                </div>
+                                <div className="text-xs opacity-50" style={{ color: 'var(--text-secondary)' }}>
+                                    {t(themeGenerationSource === 'cover'
+                                        ? 'options.themeGenerationSourceCoverDesc'
+                                        : 'options.themeGenerationSourceAiDesc')}
                                 </div>
                             </div>
-                        )}
-                    </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['ai', 'cover'] as ThemeGenerationSource[]).map(source => {
+                                    const isAiDisabled = source === 'ai' && aiApiKeyStatus !== 'configured';
+                                    return (
+                                        <button
+                                            key={source}
+                                            type="button"
+                                            onClick={() => onChangeThemeGenerationSource(source)}
+                                            aria-pressed={themeGenerationSource === source}
+                                            disabled={isAiDisabled}
+                                            className="px-3 py-2 rounded-lg border text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
+                                            style={{
+                                                ...getAccentOptionStyle(themeGenerationSource === source),
+                                                color: 'var(--text-primary)',
+                                                backgroundColor: themeGenerationSource === source
+                                                    ? (isDaylight ? `${accentOutlineColor}12` : `${accentOutlineColor}18`)
+                                                    : (isDaylight ? 'rgba(24, 24, 27, 0.035)' : 'rgba(9, 9, 11, 0.5)'),
+                                            }}
+                                        >
+                                            {t(source === 'cover' ? 'options.themeGenerationSourceCover' : 'options.themeGenerationSourceAi')}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {aiApiKeyStatus === 'missing' && (
+                                <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2.5 text-xs">
+                                    <KeyRound size={15} className="mt-0.5 shrink-0 text-amber-500" />
+                                    <div className="space-y-1.5">
+                                        <p className={`leading-relaxed ${isDaylight ? 'text-amber-600' : 'text-amber-400'}`}>
+                                            {t('options.themeGenerationSourceAiUnavailable')}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={onOpenAiSettings}
+                                            className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-75"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {t('options.configureAiApiKey')}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${settingsCardClass}`}>
                         <div className="space-y-1">
                             <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -1072,14 +1078,14 @@ const AppearanceSettingsSubview: React.FC<AppearanceSettingsSubviewProps> = ({
                             {copiedType === 'json' ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
                             <span>{copiedType === 'json' ? (t('status.copied')) : t('options.copyJson')}</span>
                         </button>
-                        {!isElectron && (
+                        {showWebObsButtons && (
                             <ObsCopyUrlButton
                                 onCopy={handleCopyObsUrl}
                                 copied={copiedType === 'obsurl'}
                                 disabled={webObsSource === null}
                             />
                         )}
-                        {!isElectron && <ObsCopyCssButton disabled={webObsSource === null} />}
+                        {showWebObsButtons && <ObsCopyCssButton disabled={webObsSource === null} />}
                         <div className="flex-1 min-w-[20px]" />
                         <button
                             type="button"

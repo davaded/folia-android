@@ -31,8 +31,13 @@ node packaging/android/build-apk.mjs
 不能冒充上游正式发布。构建脚本只重建生成的 `assets/web/`，不删除用户音乐或源码。
 
 `assets/web/android-build.json` 记录上游 revision、版本与前端资源 SHA-256。
-根 HTML、Vite 配置不变；`src` 只兼容了扫码自检中“Android 不可能运行本机 API”的检测，
-允许 APK 声明的同源原生代理，仍拒绝移动端误填的其他 localhost 服务。
+根 HTML、Vite 配置不变。`src` 里与 APK 相关的改动只有两处：
+
+- 扫码自检中“Android 不可能运行本机 API”的检测，允许 APK 声明的同源原生代理，仍拒绝移动端误填的其他 localhost 服务。
+- 车机裁剪：构建脚本往 APK 内的 `runtime-config.js` 写入 `platform = 'android'`，
+  前端据此（`isAndroidApkRuntime` / 命令面板的 `'android'` 平台）不提供 AI 主题推断、AI 分词与分词编辑器、
+  OBS 复制入口。歌曲主题固定为封面取色；Web 与桌面端不受影响。
+
 Android 文件系统兼容脚本和调试诊断脚本仅注入 APK 内的 HTML 副本。
 
 ## 配套后端
@@ -45,7 +50,7 @@ APK 加载本地界面，只有后端请求从本机 loopback 转发到该 origi
 | `/netease/` | 网易云搜索、登录与歌曲接口 |
 | `/kugou/` | 酷狗接口 |
 | `/qq/` | QQ 音乐接口 |
-| `/api/` | AI 主题、歌词分词与歌词代理 |
+| `/api/` | 歌词代理（AI 主题与分词端点由本机代理直接拒绝，不转发） |
 
 配置后重新构建：
 
@@ -54,8 +59,7 @@ FOLIA_ANDROID_API_ORIGIN=https://folia.example.com node packaging/android/build-
 ```
 
 地址必须是没有账号、密码、路径、query 或 fragment 的 HTTP(S) origin。
-生产环境使用 HTTPS。音乐服务登录仍使用原版界面；AI 密钥只配置在后端容器，不能编入 APK。
-切换 AI 服务同时设置 `VITE_AI_PROVIDER=openai` 或 `google`，并按上游 Docker 文档配置对应后端。
+生产环境使用 HTTPS。音乐服务登录仍使用原版界面；APK 不使用 AI，后端无需为车机配置 AI 密钥。
 无后端配置时，API 返回明确错误；本地界面和已导入音乐仍可使用。
 
 ## 本地音乐

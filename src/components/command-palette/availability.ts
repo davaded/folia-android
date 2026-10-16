@@ -1,3 +1,4 @@
+import { isAndroidApkRuntime } from '../../services/runtimeConfig';
 import type { CommandPaletteContext, CommandScope } from './types';
 
 // src/components/command-palette/availability.ts
@@ -5,8 +6,9 @@ import type { CommandPaletteContext, CommandScope } from './types';
 // that used to live inside getAvailableCommandPaletteCommands.
 
 // 'electron' matches any desktop build; the OS names imply desktop; 'web' means a browser
-// without the Electron bridge.
-export type CommandPlatform = 'web' | 'electron' | 'win' | 'mac' | 'linux';
+// without the Electron bridge; 'android' is the car APK. The APK is a browser too, but it is not
+// counted as 'web' so that `platform: ['web', 'electron']` can leave an entry out of the car.
+export type CommandPlatform = 'web' | 'android' | 'electron' | 'win' | 'mac' | 'linux';
 
 const OS_BY_NODE_PLATFORM: Record<string, Extract<CommandPlatform, 'win' | 'mac' | 'linux'>> = {
     win32: 'win',
@@ -16,6 +18,7 @@ const OS_BY_NODE_PLATFORM: Record<string, Extract<CommandPlatform, 'win' | 'mac'
 
 type RuntimePlatform = {
     isElectron: boolean;
+    isAndroidApk: boolean;
     os: CommandPlatform | null;
 };
 
@@ -28,10 +31,11 @@ const detectRuntimePlatform = (): RuntimePlatform | null => {
 
     const electron = (window as any).electron;
     if (!electron) {
-        return { isElectron: false, os: 'web' };
+        const isAndroidApk = isAndroidApkRuntime();
+        return { isElectron: false, isAndroidApk, os: isAndroidApk ? 'android' : 'web' };
     }
 
-    return { isElectron: true, os: OS_BY_NODE_PLATFORM[String(electron.platform)] ?? null };
+    return { isElectron: true, isAndroidApk: false, os: OS_BY_NODE_PLATFORM[String(electron.platform)] ?? null };
 };
 
 export const matchesCommandPlatform = (platform?: CommandPlatform[]): boolean => {
@@ -48,7 +52,10 @@ export const matchesCommandPlatform = (platform?: CommandPlatform[]): boolean =>
 
     return platform.some(candidate => {
         if (candidate === 'web') {
-            return !runtime.isElectron;
+            return !runtime.isElectron && !runtime.isAndroidApk;
+        }
+        if (candidate === 'android') {
+            return runtime.isAndroidApk;
         }
         if (candidate === 'electron') {
             return runtime.isElectron;

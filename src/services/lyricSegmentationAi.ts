@@ -1,5 +1,6 @@
 // Plain ESM module shared with the Vercel and Worker runtimes; resolved through allowJs.
 import { buildSegmentationManualPrompt } from '../../shared/lyricSegmentationPrompt.mjs';
+import { areAiFeaturesAvailable } from './runtimeConfig';
 
 // src/services/lyricSegmentationAi.ts
 // Renderer-side entry to lyric word segmentation, mirroring the Electron/web split in gemini.ts:
@@ -38,7 +39,9 @@ const getElectronBridge = (): ElectronBridge | null => {
 
 /** Whether an AI segmentation request can be made at all from this build. */
 export const isLyricSegmentationAiAvailable = (): boolean => (
-    typeof window !== 'undefined' && (Boolean(getElectronBridge()) || typeof fetch === 'function')
+    typeof window !== 'undefined'
+    && areAiFeaturesAvailable()
+    && (Boolean(getElectronBridge()) || typeof fetch === 'function')
 );
 
 /** The full prompt a user copies into a model site, lyrics included. */

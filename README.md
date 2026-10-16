@@ -29,6 +29,37 @@ Lyrics Reimagined // 辞曲新境
 
 </div>
 
+## 车机版（folia-android）
+
+> [!NOTE]
+> 本仓库是 [chthollyphile/folia-major](https://github.com/chthollyphile/folia-major) 的车机打包分支：把完整的 Web 版打成独立 APK，
+> 目标设备为 Android 13 / x86_64 车机。APK 自带 GeckoView 内核，不依赖车机浏览器或系统 WebView。
+> 下方「项目简介」起为上游 Folia 的原始说明。
+
+与上游 Web 版的差异：
+
+| 项目 | 车机 APK |
+| --- | --- |
+| 歌词动画、背景、EQ、AutoMix、在线音乐、本地音乐 | 与上游 Web 版一致 |
+| 系统媒体控制 | 接入 Android MediaSession 与音频焦点，供方向盘按键和系统媒体控件使用 |
+| 本地音乐 | 选目录后复制到应用私有存储再建库；外部目录新增歌曲需重新导入 |
+| AI 主题 | 不提供 AI 推断，歌曲主题固定为封面取色，不需要也不使用 AI 密钥 |
+| 歌词分词 | 不提供 AI 分词和分词编辑器；本地自动分词与已保存的分词照常生效 |
+| OBS | 不提供 OBS 复制入口 |
+| 模组、歌词 API、视频导出、Discord、托盘等 | 桌面专属，本就不在 Web 版中 |
+
+这些裁剪只对 APK 生效：构建脚本向 APK 内的 `runtime-config.js` 写入 `platform = 'android'`，Web 与桌面端不受影响。
+
+构建（需要 Node.js 24+、JDK 17、Android SDK）：
+
+```sh
+FOLIA_ANDROID_API_ORIGIN=https://your-backend.example.com node packaging/android/build-apk.mjs
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+`FOLIA_ANDROID_API_ORIGIN` 指向一套 [Docker Web 堆栈](deploy/docker/README.md) 的 HTTPS origin，提供网易云、酷狗、QQ 音乐接口与歌词代理。
+完整的构建、后端与本地音乐说明见 [Android 打包说明](packaging/android/README.md)。
+
 ## 项目简介
 
 Folia是一个以全屏沉浸式歌词播放为核心的在线音乐播放器，支持网易云、酷狗、Navidrome 和本地音乐库，通过智能歌词匹配，AI生成配色主题，以及多种全屏歌词动画为用户提供独特的听歌体验。

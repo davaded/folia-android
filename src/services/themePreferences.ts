@@ -1,4 +1,5 @@
 import { DualTheme, Theme } from '../types';
+import { areAiFeaturesAvailable } from './runtimeConfig';
 
 // Shared helpers for persisted theme preferences and applied theme selection.
 
@@ -35,6 +36,11 @@ export const isThemeGenerationSource = (value: unknown): value is ThemeGeneratio
 export const readStoredThemeGenerationSource = (): ThemeGenerationSource => {
     if (!isBrowser()) {
         return 'ai';
+    }
+
+    // 没有 AI 推断的构建（车机 APK）只剩封面取色，不论存的是什么。
+    if (!areAiFeaturesAvailable()) {
+        return 'cover';
     }
 
     const storedValue = window.localStorage.getItem(THEME_GENERATION_SOURCE_KEY);

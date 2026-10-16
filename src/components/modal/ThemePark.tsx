@@ -35,6 +35,7 @@ import {
     type ThemeEditTarget,
     type ThemeParkTab,
 } from './theme-park/themeParkDraft';
+import { areAiFeaturesAvailable } from '../../services/runtimeConfig';
 
 // src/components/modal/ThemePark.tsx
 // Full theme editor: live visualizer preview on the left, and a tabbed editor on the right that
@@ -71,6 +72,9 @@ const TABS: Array<{ id: ThemeParkTab; labelKey: string; }> = [
     { id: 'ai', labelKey: 'theme.tabAi' },
 ];
 
+// AI 页是「复制提示词 / 粘贴 AI 结果」的手动往返，车机 APK 没有 AI 功能，不给这一页。
+const getVisibleTabs = () => (areAiFeaturesAvailable() ? TABS : TABS.filter(tab => tab.id !== 'ai'));
+
 const ThemePark: React.FC<ThemeParkProps> = ({
     initialTheme,
     isDaylight,
@@ -96,6 +100,7 @@ const ThemePark: React.FC<ThemeParkProps> = ({
     const isMouseDownOnOverlayRef = useRef(false);
     const [isPaused, setIsPaused] = useState(false);
     const [activeTab, setActiveTab] = useState<ThemeParkTab>('colors');
+    const visibleTabs = getVisibleTabs();
     const [coverColors, setCoverColors] = useState<string[]>([]);
 
     // Shared theme-editing context (also feeding the quick editor): the live AI / custom themes
@@ -267,8 +272,8 @@ const ThemePark: React.FC<ThemeParkProps> = ({
                             className="space-y-4 rounded-[24px] border border-white/10 p-4"
                             style={{ backgroundColor: controlCardBg }}
                         >
-                            <div className="grid grid-cols-4 gap-1 rounded-full bg-white/5 p-1">
-                                {TABS.map(({ id, labelKey }) => (
+                            <div className={`grid ${visibleTabs.length === TABS.length ? 'grid-cols-4' : 'grid-cols-3'} gap-1 rounded-full bg-white/5 p-1`}>
+                                {visibleTabs.map(({ id, labelKey }) => (
                                     <button
                                         key={id}
                                         type="button"
@@ -320,7 +325,7 @@ const ThemePark: React.FC<ThemeParkProps> = ({
                                 />
                             )}
 
-                            {activeTab === 'ai' && (
+                            {activeTab === 'ai' && visibleTabs.some(tab => tab.id === 'ai') && (
                                 <ThemeParkAiPanel
                                     promptSourceText={promptSourceText}
                                     isPureMusic={isPureMusic}

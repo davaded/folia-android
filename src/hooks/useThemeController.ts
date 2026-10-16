@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { generateThemeFromLyrics, isMissingAiApiKeyError } from '../services/gemini';
+import { areAiFeaturesAvailable } from '../services/runtimeConfig';
 import { saveToCache } from '../services/db';
 import { DualTheme, LyricData, SongResult, StatusMessage, Theme, ThemeMode } from '../types';
 import { getCachedThemeState, getCachedThemeStateForSong, getLastDualTheme, getLastLegacyTheme, type ThemeCacheSongKey } from '../services/themeCache';
@@ -478,6 +479,10 @@ export function useThemeController({
     };
 
     const handleThemeGenerationSourceChange = (source: ThemeGenerationSource) => {
+        // 车机 APK 只有封面取色：导入的外观配置或同步过来的设置要求 AI 推断时不切换。
+        if (source === 'ai' && !areAiFeaturesAvailable()) {
+            return;
+        }
         setThemeGenerationSource(source);
         setStatusMsg({
             type: 'info',

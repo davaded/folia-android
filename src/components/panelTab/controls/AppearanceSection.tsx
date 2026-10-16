@@ -14,7 +14,8 @@ import { QuickControlChip, QuickControlToggle } from '../../shared/QuickControlC
 import { WholeWord } from 'lucide-react';
 import { openCommandPaletteCommand } from '../../../stores/useAppViewStore';
 import { useLyricSegmentationStore } from '../../../stores/useLyricSegmentationStore';
-import { LYRIC_SEGMENTATION_COMMAND_ID } from '../../command-palette/commands/lyricSegmentationCommand';
+import { LYRIC_SEGMENTATION_COMMAND_ID, lyricSegmentationCommand } from '../../command-palette/commands/lyricSegmentationCommand';
+import { matchesCommandPlatform } from '../../command-palette/availability';
 import ModeStepperRow from './ModeStepperRow';
 import ThemeSourceRow from './ThemeSourceRow';
 import { BackgroundModeGlyph, VisualizerModeGlyph } from '../../visualizer/modeGlyphs';
@@ -64,6 +65,8 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     // Only the modes whose typography is built from word segmentation get the chip; the registry
     // says which, so adding such a mode does not mean editing a list here.
     const usesWordSegmentation = Boolean(getVisualizerRegistryEntry(visualizerMode).usesWordSegmentation);
+    // 这一格只是打开分词命令的捷径：命令在当前平台不存在（车机 APK）时一起不显示。
+    const canOpenSegmentation = usesWordSegmentation && matchesCommandPlatform(lyricSegmentationCommand.platform);
     const hasSavedSegmentation = useLyricSegmentationStore(state => Boolean(state.record));
     const visualizerBackgroundMode = useVisualizerSettingsStore(state => state.visualizerBackgroundMode);
     const setVisualizerBackgroundMode = useVisualizerSettingsStore(state => state.handleSetVisualizerBackgroundMode);
@@ -166,7 +169,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                                 title={`${t('ui.animationIntensity')}: ${t(`animation.${theme.animationIntensity}`)}`}
                                 onClick={cycleAnimationIntensity}
                             />
-                            {usesWordSegmentation && (
+                            {canOpenSegmentation && (
                                 <QuickControlToggle
                                     active={hasSavedSegmentation}
                                     theme={theme}

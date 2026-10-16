@@ -147,6 +147,19 @@ describe('themePreferences', () => {
         expect(readStoredThemeGenerationSource()).toBe('ai');
     });
 
+    it('reads the cover source in the car APK even when AI inference was stored', () => {
+        const localStorage = createLocalStorageMock();
+        localStorage.setItem('theme_generation_source', 'ai');
+        (globalThis as { window?: unknown; }).window = {
+            localStorage,
+            __FOLIA_RUNTIME_CONFIG__: { platform: 'android' },
+        };
+
+        expect(readStoredThemeGenerationSource()).toBe('cover');
+        // The stored choice is left alone; only this build cannot honour it.
+        expect(localStorage.getItem('theme_generation_source')).toBe('ai');
+    });
+
     it('guards the theme generation source values', () => {
         expect(isThemeGenerationSource('ai')).toBe(true);
         expect(isThemeGenerationSource('cover')).toBe(true);

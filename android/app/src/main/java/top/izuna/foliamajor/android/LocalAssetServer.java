@@ -47,6 +47,10 @@ public final class LocalAssetServer {
     private static final Set<String> API_NAMES = immutableSet("api", "netease", "kugou", "qq");
     private static final Set<String> ROOT_API_NAMES = immutableSet(
             "generate-theme", "generate-theme_openai", "lyric-proxy", "segment-lyrics");
+    // The car build ships without AI inference; these never leave the device even if a stale page asks.
+    private static final Set<String> DISABLED_API_PATHS = immutableSet(
+            "/api/generate-theme", "/api/generate-theme_openai", "/api/segment-lyrics",
+            "/generate-theme", "/generate-theme_openai", "/segment-lyrics");
     private static final Set<String> PROXY_METHODS = immutableSet("GET", "HEAD", "POST", "OPTIONS");
     private static final Set<String> HOP_HEADERS = immutableSet(
             "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
@@ -131,7 +135,9 @@ public final class LocalAssetServer {
                 if (path.equals("/__android_diagnostics")) {
                     serveDiagnostics(request, input, output);
                 } else if (isApiPath(path)) {
-                    if (API_NAMES.contains(path.substring(1).split("/", 2)[0])) {
+                    if (DISABLED_API_PATHS.contains(stripTrailingSlash(path).toLowerCase(Locale.ROOT))) {
+                        sendError(output, 404, "API_DISABLED", head, null);
+                    } else if (API_NAMES.contains(path.substring(1).split("/", 2)[0])) {
                         proxyApi(request, input, output);
                     } else {
                         sendError(output, 404, "API_NOT_CONFIGURED", head, null);
@@ -253,6 +259,10 @@ public final class LocalAssetServer {
             }
         }
         return path;
+    }
+
+    private static String stripTrailingSlash(String path) {
+        return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
     private static boolean isApiPath(String path) {

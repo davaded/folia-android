@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { SEGMENTATION_BATCH_SIZE, segmentLyricsWithAi } from '../../../src/services/lyricSegmentationAi';
+import { SEGMENTATION_BATCH_SIZE, isLyricSegmentationAiAvailable, segmentLyricsWithAi } from '../../../src/services/lyricSegmentationAi';
 
 // test/unit/lyrics/lyricSegmentationBatching.test.ts
 // A whole song in one request generates for a minute or more with nothing on screen, which reads
@@ -59,5 +59,17 @@ describe('segmentLyricsWithAi batching', () => {
         } };
         await expect(segmentLyricsWithAi(LINES, { signal: controller.signal })).rejects.toThrow(/cancel/i);
         expect(n).toBe(1);
+    });
+});
+
+describe('AI segmentation availability', () => {
+    afterEach(() => { delete (globalThis as any).window; });
+
+    it('is withheld from the car APK, which offers no AI inference', () => {
+        (globalThis as any).window = { __FOLIA_RUNTIME_CONFIG__: { platform: 'android' } };
+        expect(isLyricSegmentationAiAvailable()).toBe(false);
+
+        (globalThis as any).window = {};
+        expect(isLyricSegmentationAiAvailable()).toBe(true);
     });
 });

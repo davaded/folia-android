@@ -39,7 +39,9 @@ fs.mkdirSync(path.dirname(web), { recursive: true });
 fs.rmSync(web, { recursive: true, force: true });
 fs.cpSync(path.join(root, 'dist'), web, { recursive: true });
 fs.appendFileSync(path.join(web, 'runtime-config.js'),
-  '\nwindow.__FOLIA_RUNTIME_CONFIG__.androidApiProxyOrigin = location.origin;\n');
+  '\nwindow.__FOLIA_RUNTIME_CONFIG__.androidApiProxyOrigin = location.origin;\n' +
+  // Lets the renderer hide entries the car does not offer (AI inference, OBS, segmentation editor).
+  "window.__FOLIA_RUNTIME_CONFIG__.platform = 'android';\n");
 for (const name of ['filesystem-compat.js', 'runtime-diagnostics.js']) {
   fs.copyFileSync(path.join(root, 'packaging/android', name), path.join(web, `android-${name}`));
 }

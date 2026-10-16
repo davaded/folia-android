@@ -228,6 +228,8 @@ export const settingsCommands: CommandPaletteCommand[] = [
     },
     {
         id: 'settings-obs-copy-css',
+        // 车机 APK 不接 OBS。
+        platform: ['web', 'electron'],
         group: 'settings',
         title: 'Copy OBS CSS',
         description: 'Copy the OBS Browser Source Custom CSS carrying uploaded background / portrait / Cappella assets',
@@ -515,6 +517,8 @@ export const settingsCommands: CommandPaletteCommand[] = [
     },
     {
         id: 'theme-source-ai',
+        // 车机 APK 没有 AI 推断，来源固定为封面取色（areAiFeaturesAvailable），两个来源命令都不出现。
+        platform: ['web', 'electron'],
         isAvailable: context => (context ? context.settings.themeGenerationSource !== 'ai' : true),
         group: 'settings',
         title: 'Theme source: AI inference',
@@ -530,6 +534,7 @@ export const settingsCommands: CommandPaletteCommand[] = [
     },
     {
         id: 'theme-source-cover',
+        platform: ['web', 'electron'],
         isAvailable: context => (context ? context.settings.themeGenerationSource !== 'cover' : true),
         group: 'settings',
         title: 'Theme source: cover colors',

@@ -23,6 +23,8 @@ export const lyricSegmentationCommand: CommandPaletteCommand = defineCommand({
     // command takes no input of its own.
     keywords: ['word segmentation', 'lyric segmentation', 'segment lyrics', 'word split', '歌词分词', '分词调整', '分词', '词边界', '重新分词'],
     icon: WholeWord,
+    // 车机 APK 不提供分词编辑器（AI、复制提示词、粘贴导入在车里都用不上）；已保存的分词照常生效。
+    platform: ['web', 'electron'],
     surface: lyricSegmentationSurface,
     // The input doubles as the import box and as a command line for the surface's actions, so the
     // palette parses `--ai` / `--copy-prompt` / `--copy-seg` and offers them as completions.

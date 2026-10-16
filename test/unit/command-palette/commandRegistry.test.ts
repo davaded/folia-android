@@ -694,6 +694,30 @@ describe('command palette registry', () => {
         }
     });
 
+    it('leaves AI theme source, OBS and lyric segmentation commands out of the car APK', () => {
+        const carOnlyHidden = ['theme-source-ai', 'theme-source-cover', 'settings-obs-copy-css', 'lyric-segmentation'];
+        const availableIds = () => new Set(getAvailableCommandPaletteCommands().map(command => command.id));
+
+        try {
+            vi.stubGlobal('window', { __FOLIA_RUNTIME_CONFIG__: { platform: 'android' } });
+            const apk = availableIds();
+            carOnlyHidden.forEach(id => expect(apk.has(id)).toBe(false));
+            // Cover-derived generation stays, and web-and-desktop commands are not 'android'.
+            expect(apk.has('theme-generate-current')).toBe(true);
+            expect(apk.has('settings-desktop')).toBe(false);
+
+            vi.stubGlobal('window', {});
+            const web = availableIds();
+            carOnlyHidden.forEach(id => expect(web.has(id)).toBe(true));
+
+            vi.stubGlobal('window', { electron: {} });
+            const desktop = availableIds();
+            carOnlyHidden.forEach(id => expect(desktop.has(id)).toBe(true));
+        } finally {
+            vi.unstubAllGlobals();
+        }
+    });
+
     it('limits suggestions to ten commands', () => {
         expect(getCommandPaletteMatches('')).toHaveLength(10);
     });

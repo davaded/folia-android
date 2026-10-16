@@ -12,6 +12,7 @@ import { THEME_GENERATION_PROMPT_PREFIX, buildThemeSourcePrompt, parseAiThemeJso
 import { useThemeQuickEditorStore, type ThemeQuickEditorKind } from '../../stores/useThemeQuickEditorStore';
 import { buildRecommendedColors } from '../../utils/themeEditorPalette';
 import FastColorPicker from '../shared/FastColorPicker';
+import { areAiFeaturesAvailable } from '../../services/runtimeConfig';
 
 // src/components/panelTab/ThemeQuickEditor.tsx
 // Lightweight theme color editor launched from the player controls tab.
@@ -587,7 +588,8 @@ const ThemeQuickEditor: React.FC<ThemeQuickEditorProps> = ({
                                             {isJsonCopied ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
                                             <span>{isJsonCopied ? (t('status.copied') || 'Copied!') : (t('options.copyThemeJson') || 'Copy JSON')}</span>
                                         </button>
-                                        {kind === 'ai' && (
+                                        {/* 手动导入是复制提示词给 AI、再粘贴结果的往返；车机 APK 没有 AI 功能。 */}
+                                        {kind === 'ai' && areAiFeaturesAvailable() && (
                                             <button
                                             type="button"
                                             onClick={() => setIsImportPanelOpen(true)}
