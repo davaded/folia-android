@@ -50,7 +50,7 @@ import { useReducedMotionFor } from '../../hooks/useReducedMotionFor';
 import { useSettingsInitialAnchor } from '../../hooks/useSettingsInitialAnchor';
 import { useShallow } from 'zustand/react/shallow';
 import type { ObsBrowserSourceStatus } from '../../types/obsBrowserSource';
-import { getWebAiProvider } from '../../services/runtimeConfig';
+import { getWebAiProvider, isAndroidApkRuntime } from '../../services/runtimeConfig';
 import type { LyricApiStatus } from '../../types/lyricApi';
 import type { SongResult } from '../../types';
 import type { ThemeCacheSongKey } from '../../services/themeCache';
@@ -513,6 +513,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const configuredAiProvider = isElectron ? electronSettings.AI_PROVIDER : getWebAiProvider();
     const aiServiceLabel = configuredAiProvider === 'openai' ? t('options.otherCompatibleApi') : 'Google Gemini';
     const isElectronRuntime = typeof window !== 'undefined' && Boolean(window.electron);
+    const isAndroidApk = isAndroidApkRuntime();
     const savedAiApiKey = savedElectronAiCredentials.AI_PROVIDER === 'openai'
         ? savedElectronAiCredentials.OPENAI_API_KEY
         : savedElectronAiCredentials.GEMINI_API_KEY;
@@ -1327,8 +1328,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
     const isBravaisSuiteActive = useIsBravaisLibraryActive();
     const settingsNavGroups = useMemo(
-        () => buildSettingsNavGroups(t, { isElectron, hasLibrarySuiteChoice: hasLibrarySuiteChoice(), isBravaisSuiteActive }),
-        [t, isElectron, isBravaisSuiteActive],
+        () => buildSettingsNavGroups(t, { isElectron, isAndroidApk, hasLibrarySuiteChoice: hasLibrarySuiteChoice(), isBravaisSuiteActive }),
+        [t, isElectron, isAndroidApk, isBravaisSuiteActive],
     );
     const activeSettingsNavItem = findSettingsNavItem(settingsNavGroups, activeSettingsSection);
     const prefersReducedMotion = useReducedMotionFor('settingsScroll');
@@ -1470,50 +1471,55 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                 I'll iterate through original items and verify.
                             */}
 
-                                {/* Shortcuts */}
-                                <div>
-                                    <h3 className="text-sm font-bold uppercase tracking-wider opacity-50 mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-                                        <Keyboard size={14} /> {t('help.keyboardShortcuts')}
-                                    </h3>
-                                    <ul className="space-y-2 text-sm" style={{ color: 'var(--text-primary)' }}>
-                                        {HELP_TAB_PRIMARY_SHORTCUTS.map(shortcut => (
-                                            <li key={shortcut.id} className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
-                                                <span>{t(shortcut.titleKey, shortcut.fallback)}</span>
-                                                <div className="flex items-center gap-1">
-                                                    <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{isMac ? 'Cmd' : 'Ctrl'}</kbd>
-                                                    <span className="text-xs opacity-50">+</span>
-                                                    <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{shortcut.key}</kbd>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                {/* 车机 APK 没有实体键盘，快捷键表与播放快捷键都按不出来，不显示。 */}
+                                {!isAndroidApk && (
+                                    <>
+                                        {/* Shortcuts */}
+                                        <div>
+                                            <h3 className="text-sm font-bold uppercase tracking-wider opacity-50 mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                                                <Keyboard size={14} /> {t('help.keyboardShortcuts')}
+                                            </h3>
+                                            <ul className="space-y-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+                                                {HELP_TAB_PRIMARY_SHORTCUTS.map(shortcut => (
+                                                    <li key={shortcut.id} className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
+                                                        <span>{t(shortcut.titleKey, shortcut.fallback)}</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{isMac ? 'Cmd' : 'Ctrl'}</kbd>
+                                                            <span className="text-xs opacity-50">+</span>
+                                                            <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{shortcut.key}</kbd>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
 
-                                {/* Player Controls */}
-                                <div>
-                                    <h3 className="text-sm font-bold uppercase tracking-wider opacity-50 mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-                                        <Keyboard size={14} /> {t('help.playerControls')}
-                                    </h3>
-                                    <ul className="space-y-2 text-sm" style={{ color: 'var(--text-primary)' }}>
-                                        <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
-                                            <span>{t('help.playPause')}</span>
-                                            <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">Space</kbd>
-                                        </li>
-                                        <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
-                                            <span>{t('help.previousTrack')} / {t('help.nextTrack')}</span>
-                                            <div className="flex items-center gap-1">
-                                                <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{isMac ? 'Cmd' : 'Ctrl'}</kbd>
-                                                <span className="text-xs opacity-50">+</span>
-                                                <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">← / →</kbd>
-                                            </div>
-                                        </li>
-                                        <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
-                                            <span>{t('help.seekBackward')} / {t('help.seekForward')}</span>
-                                            <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">← / →</kbd>
-                                        </li>
+                                        {/* Player Controls */}
+                                        <div>
+                                            <h3 className="text-sm font-bold uppercase tracking-wider opacity-50 mb-3 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                                                <Keyboard size={14} /> {t('help.playerControls')}
+                                            </h3>
+                                            <ul className="space-y-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+                                                <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
+                                                    <span>{t('help.playPause')}</span>
+                                                    <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">Space</kbd>
+                                                </li>
+                                                <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
+                                                    <span>{t('help.previousTrack')} / {t('help.nextTrack')}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">{isMac ? 'Cmd' : 'Ctrl'}</kbd>
+                                                        <span className="text-xs opacity-50">+</span>
+                                                        <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">← / →</kbd>
+                                                    </div>
+                                                </li>
+                                                <li className="flex items-center justify-between bg-white/5 p-2 rounded-lg">
+                                                    <span>{t('help.seekBackward')} / {t('help.seekForward')}</span>
+                                                    <kbd className="px-2 py-0.5 bg-white/10 rounded text-xs font-mono">← / →</kbd>
+                                                </li>
 
-                                    </ul>
-                                </div>
+                                            </ul>
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* User Guide Button */}
                                 <div className="mt-6 flex flex-wrap justify-center gap-3">

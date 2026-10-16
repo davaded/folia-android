@@ -11,6 +11,7 @@ import { useTypographySettingsStore } from '../../../stores/useTypographySetting
 import { usePlayerChromeSettingsStore } from '../../../stores/usePlayerChromeSettingsStore';
 import { useThemeSettingsStore } from '../../../stores/useThemeSettingsStore';
 import { useDesktopSettingsStore } from '../../../stores/useDesktopSettingsStore';
+import { isAndroidApkRuntime } from '../../../services/runtimeConfig';
 
 // src/components/modal/settings/LabSettingsModal.tsx
 // Experimental settings subview kept outside SettingsModal to avoid another giant inline panel.
@@ -108,6 +109,7 @@ const LabSettingsModal: React.FC<LabSettingsModalProps> = ({
         : 'border-white/10 bg-white/5 hover:bg-white/10';
     const isElectron = typeof window !== 'undefined' && Boolean(window.electron);
     const isMacElectron = window.electron?.platform === 'darwin';
+    const isAndroidApk = isAndroidApkRuntime();
 
     const renderToggle = (checked: boolean, onChange: () => void) => (
         <button
@@ -244,18 +246,21 @@ const LabSettingsModal: React.FC<LabSettingsModalProps> = ({
                                     {renderToggle(autoPlayOnLaunch, () => onToggleAutoPlayOnLaunch(!autoPlayOnLaunch))}
                                 </div>
 
-                                <div className={`p-4 rounded-xl border flex items-center justify-between gap-4 ${settingsCardClass}`}>
-                                    <div className="space-y-1">
-                                        <div className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                                            <Monitor size={14} />
-                                            {t('options.alwaysShowMainWindowTitlebar')}
+                                {/* 车机 APK 没有窗口标题栏按钮，这一项不渲染。 */}
+                                {!isAndroidApk && (
+                                    <div className={`p-4 rounded-xl border flex items-center justify-between gap-4 ${settingsCardClass}`}>
+                                        <div className="space-y-1">
+                                            <div className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                                                <Monitor size={14} />
+                                                {t('options.alwaysShowMainWindowTitlebar')}
+                                            </div>
+                                            <div className="text-xs opacity-50 max-w-[320px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('options.alwaysShowMainWindowTitlebarDesc')}
+                                            </div>
                                         </div>
-                                        <div className="text-xs opacity-50 max-w-[320px]" style={{ color: 'var(--text-secondary)' }}>
-                                            {t('options.alwaysShowMainWindowTitlebarDesc')}
-                                        </div>
+                                        {renderToggle(alwaysShowMainWindowTitlebar, () => onToggleAlwaysShowMainWindowTitlebar(!alwaysShowMainWindowTitlebar))}
                                     </div>
-                                    {renderToggle(alwaysShowMainWindowTitlebar, () => onToggleAlwaysShowMainWindowTitlebar(!alwaysShowMainWindowTitlebar))}
-                                </div>
+                                )}
 
                                 {isMacElectron && (
                                     <div className={`p-4 rounded-xl border flex items-center justify-between gap-4 ${settingsCardClass}`}>

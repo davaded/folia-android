@@ -1,3 +1,4 @@
+import { isAndroidApkRuntime } from '../../services/runtimeConfig';
 import type { CommandPaletteCommand } from './types';
 
 // src/components/command-palette/pinnedCommandPreferences.ts
@@ -74,3 +75,14 @@ export const resolvePinnedCommandSlots = (
         ? availableCommands.find(command => command.id === commandId) ?? null
         : null
 ));
+
+/**
+ * The slots the palette actually shows. The car APK offers no pinned commands (the user decided so;
+ * its settings section is not rendered there either), so every slot is empty and the row disappears.
+ */
+export const resolveVisiblePinnedCommandSlots = (
+    commandIds: PinnedCommandIds,
+    availableCommands: CommandPaletteCommand[],
+): Array<CommandPaletteCommand | null> => (
+    isAndroidApkRuntime() ? [null, null, null] : resolvePinnedCommandSlots(commandIds, availableCommands)
+);

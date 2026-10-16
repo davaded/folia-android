@@ -37,6 +37,26 @@ describe('settingsNavModel', () => {
         expect(groups.every(group => group.items.length > 0)).toBe(true);
     });
 
+    it('leaves the keyboard-only interaction anchors out of the car APK', () => {
+        const anchorsOf = (isAndroidApk: boolean) => findSettingsNavItem(
+            buildSettingsNavGroups(echo, { isElectron: false, isAndroidApk }),
+            'interaction',
+        )?.anchors.map(anchor => anchor.id);
+
+        expect(anchorsOf(true)).toEqual(['gridActionButton']);
+        expect(anchorsOf(false)).toEqual(['gridActionButton', 'gridPaletteHotkey', 'customShortcut']);
+    });
+
+    it('leaves the pinned command anchor out of the car APK', () => {
+        const generalAnchors = (isAndroidApk: boolean) => findSettingsNavItem(
+            buildSettingsNavGroups(echo, { isElectron: false, isAndroidApk }),
+            'general',
+        )?.anchors.map(anchor => anchor.id) ?? [];
+
+        expect(generalAnchors(true)).not.toContain('pinnedCommands');
+        expect(generalAnchors(false)).toContain('pinnedCommands');
+    });
+
     it('keeps the section order the flat sidebar list used', () => {
         const ids = flattenSettingsNavItems(buildSettingsNavGroups(echo, { isElectron: true })).map(item => item.id);
         expect(ids).toEqual(ALL_SECTIONS);

@@ -14,6 +14,8 @@ export const executeModeCommand: CommandPaletteCommand = defineCommand({
     keywords: [],
     hidden: true,
     requiresInput: true,
+    // 车机 APK 没有实体键盘，`:` 按不出来；不列在那里，界面上的「: + R」这类提示也随之不显示。
+    platform: ['web', 'electron'],
     openHotkey: { key: ':' },
     surface: executeModeSurface,
     placeholder: context => context.shared.t('commandPalette.executeMode.placeholder', 'Press a shortcut key to run it instantly'),

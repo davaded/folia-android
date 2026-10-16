@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { isRecordableRecentCommand, readRecentCommandIds, recordRecentCommandId, resolveRecentCommandToRecord } from './recentCommands';
 import { readCommandFrequencyState, recordCommandUse, type CommandFrequencyState } from './commandFrequency';
 import type { CommandPaletteContext, CommandPaletteCommand, CommandPaletteMatch } from './types';
-import { resolvePinnedCommandSlots } from './pinnedCommandPreferences';
+import { resolveVisiblePinnedCommandSlots } from './pinnedCommandPreferences';
 import { FILTER_VIEW_COMMAND_ID } from './commands/filterViewCommand';
 import { isPrimaryModifierPressed, isSecondaryModifierPressed } from '../../utils/platform';
 import { useSettingsModalStore } from '../../stores/useSettingsModalStore';
@@ -118,7 +118,7 @@ export const useCommandPalette = ({
     const contextRef = useRef(context);
     contextRef.current = context;
     const pinnedCommands = useMemo(
-        () => resolvePinnedCommandSlots(pinnedCommandIds, availableCommands),
+        () => resolveVisiblePinnedCommandSlots(pinnedCommandIds, availableCommands),
         [availableCommands, pinnedCommandIds],
     );
     const surface = activeCommand?.surface ?? null;

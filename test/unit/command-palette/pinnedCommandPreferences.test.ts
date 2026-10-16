@@ -5,6 +5,7 @@ import {
     normalizePinnedCommandIds,
     readPinnedCommandIds,
     resolvePinnedCommandSlots,
+    resolveVisiblePinnedCommandSlots,
     writePinnedCommandIds,
 } from '../../../src/components/command-palette/pinnedCommandPreferences';
 import type { CommandPaletteCommand } from '../../../src/components/command-palette/types';
@@ -73,6 +74,23 @@ describe('pinned command preferences', () => {
             queueCommand,
             null,
         ]);
+    });
+
+    it('shows no pinned slots in the car APK, and the resolved slots elsewhere', () => {
+        const queueCommand = {
+            id: 'queue',
+            group: 'playback',
+            title: 'Queue',
+            description: 'Queue',
+            keywords: ['queue'],
+            execute: () => true,
+        } satisfies CommandPaletteCommand;
+
+        vi.stubGlobal('window', { __FOLIA_RUNTIME_CONFIG__: { platform: 'android' } });
+        expect(resolveVisiblePinnedCommandSlots(['queue', null, null], [queueCommand])).toEqual([null, null, null]);
+
+        vi.stubGlobal('window', {});
+        expect(resolveVisiblePinnedCommandSlots(['queue', null, null], [queueCommand])).toEqual([queueCommand, null, null]);
     });
 
     it('persists only the normalized three-slot array', () => {

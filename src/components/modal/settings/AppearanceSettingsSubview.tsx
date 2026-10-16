@@ -143,6 +143,7 @@ const AppearanceSettingsSubview: React.FC<AppearanceSettingsSubviewProps> = ({
     // 车机 APK 不接 OBS；也没有 AI 推断，主题来源固定为封面取色，来源选择整块不显示。
     const showWebObsButtons = !isElectron && !isAndroidApkRuntime();
     const showThemeGenerationSource = areAiFeaturesAvailable();
+    const showCursorAutoHide = !isAndroidApkRuntime();
     const webObsSource = useStageSettingsStore(selectWebObsSource);
     const [importText, setImportText] = useState('');
     const [copiedType, setCopiedType] = useState<'none' | 'shortcode' | 'json' | 'obsurl'>('none');
@@ -710,23 +711,26 @@ const AppearanceSettingsSubview: React.FC<AppearanceSettingsSubviewProps> = ({
                         </div>
                         {/* 指针隐藏是控制栏自动隐藏的附加项：上面那个开关关着时它无事可做，
                             所以整行淡出，但仍可点击——先设好偏好再开自动隐藏也是合理的顺序。 */}
-                        <div className={`pl-4 border-l-2 border-white/10 flex items-center justify-between gap-4 transition-opacity ${autoHidePlayerChrome ? '' : 'opacity-40'}`}>
-                            <div className="space-y-1">
-                                <div className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                                    {t('options.autoHideCursorWithPlayerChrome')}
+                        {/* 车机 APK 没有鼠标指针，这一行不渲染；上面的「自动隐藏控制栏」保留。 */}
+                        {showCursorAutoHide && (
+                            <div className={`pl-4 border-l-2 border-white/10 flex items-center justify-between gap-4 transition-opacity ${autoHidePlayerChrome ? '' : 'opacity-40'}`}>
+                                <div className="space-y-1">
+                                    <div className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                                        {t('options.autoHideCursorWithPlayerChrome')}
+                                    </div>
+                                    <div className="text-xs opacity-50 max-w-[360px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('options.autoHideCursorWithPlayerChromeDesc')}
+                                    </div>
                                 </div>
-                                <div className="text-xs opacity-50 max-w-[360px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('options.autoHideCursorWithPlayerChromeDesc')}
-                                </div>
+                                <button
+                                    onClick={() => onToggleAutoHideCursorWithPlayerChrome(!autoHideCursorWithPlayerChrome)}
+                                    className={`w-12 h-6 rounded-full p-1 transition-colors shrink-0 ${!autoHideCursorWithPlayerChrome ? toggleOffBackgroundClass : ''}`}
+                                    style={{ backgroundColor: autoHideCursorWithPlayerChrome ? theme?.secondaryColor || 'rgba(114, 119, 134, 1)' : undefined }}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${autoHideCursorWithPlayerChrome ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => onToggleAutoHideCursorWithPlayerChrome(!autoHideCursorWithPlayerChrome)}
-                                className={`w-12 h-6 rounded-full p-1 transition-colors shrink-0 ${!autoHideCursorWithPlayerChrome ? toggleOffBackgroundClass : ''}`}
-                                style={{ backgroundColor: autoHideCursorWithPlayerChrome ? theme?.secondaryColor || 'rgba(114, 119, 134, 1)' : undefined }}
-                            >
-                                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${autoHideCursorWithPlayerChrome ? 'translate-x-6' : 'translate-x-0'}`} />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
             </SettingsAnchor>

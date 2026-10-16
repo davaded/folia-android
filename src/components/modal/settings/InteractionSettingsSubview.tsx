@@ -13,6 +13,7 @@ import {
 import { CustomSelect } from '../../shared/CustomSelect';
 import ShortcutCaptureField from './ShortcutCaptureField';
 import { PRIMARY_MODIFIER_LABEL } from '../../../utils/platform';
+import { isAndroidApkRuntime } from '../../../services/runtimeConfig';
 import { SettingsAnchor } from './navigation/SettingsAnchorContext';
 import SettingsSectionHeading from './navigation/SettingsSectionHeading';
 import {
@@ -56,6 +57,7 @@ export const InteractionSettingsSubview: React.FC<InteractionSettingsSubviewProp
         setCustomShortcutCommandId: state.setCustomShortcutCommandId,
     })));
 
+    const showKeyboardSettings = !isAndroidApkRuntime();
     const accentOutlineColor = theme?.secondaryColor || 'rgba(114, 119, 134, 1)';
     const toggleOffBackgroundClass = isDaylight ? 'bg-zinc-300/90' : 'bg-white/10';
 
@@ -151,63 +153,68 @@ export const InteractionSettingsSubview: React.FC<InteractionSettingsSubviewProp
                 </div>
             </SettingsAnchor>
 
-            <SettingsAnchor anchorId="gridPaletteHotkey" label={t('options.gridPaletteHotkey')}>
-                <SettingsSectionHeading icon={Command} label={t('options.gridPaletteHotkey')} />
-                <div className={`p-4 rounded-xl border ${settingsCardClass}`}>
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="space-y-1">
-                            <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                                {t('options.gridPaletteHotkey')}
-                            </div>
-                            <div className="text-[11px] opacity-50 max-w-[420px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('options.gridPaletteHotkeyDesc')}
+            {/* 车机 APK 没有实体键盘：S 键与自定义快捷键都按不出来，这两块不渲染（导航锚点同样 hiddenOnAndroid）。 */}
+            {showKeyboardSettings && (
+                <>
+                    <SettingsAnchor anchorId="gridPaletteHotkey" label={t('options.gridPaletteHotkey')}>
+                        <SettingsSectionHeading icon={Command} label={t('options.gridPaletteHotkey')} />
+                        <div className={`p-4 rounded-xl border ${settingsCardClass}`}>
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                    <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                        {t('options.gridPaletteHotkey')}
+                                    </div>
+                                    <div className="text-[11px] opacity-50 max-w-[420px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('options.gridPaletteHotkeyDesc')}
+                                    </div>
+                                </div>
+                                {renderToggle(
+                                    gridCommandPaletteHotkey,
+                                    () => handleToggleGridCommandPaletteHotkey(!gridCommandPaletteHotkey),
+                                    t('options.gridPaletteHotkey'),
+                                )}
                             </div>
                         </div>
-                        {renderToggle(
-                            gridCommandPaletteHotkey,
-                            () => handleToggleGridCommandPaletteHotkey(!gridCommandPaletteHotkey),
-                            t('options.gridPaletteHotkey'),
-                        )}
-                    </div>
-                </div>
-            </SettingsAnchor>
+                    </SettingsAnchor>
 
-            <SettingsAnchor anchorId="customShortcut" label={t('options.customShortcut')}>
-                <SettingsSectionHeading icon={Keyboard} label={t('options.customShortcut')} />
-                <div className={`p-4 rounded-xl border space-y-4 ${settingsCardClass}`}>
-                    <div className="space-y-1">
-                        <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                            {t('options.customShortcut')}
+                    <SettingsAnchor anchorId="customShortcut" label={t('options.customShortcut')}>
+                        <SettingsSectionHeading icon={Keyboard} label={t('options.customShortcut')} />
+                        <div className={`p-4 rounded-xl border space-y-4 ${settingsCardClass}`}>
+                            <div className="space-y-1">
+                                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    {t('options.customShortcut')}
+                                </div>
+                                <div className="text-[11px] opacity-50 max-w-[420px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('options.customShortcutDesc')}
+                                </div>
+                            </div>
+                            {/* One row, two halves of one sentence: this key runs that command. The column
+                                captions are gone because the caps and the select already say which is which. */}
+                            <div className="grid items-center gap-3 sm:grid-cols-2">
+                                <ShortcutCaptureField
+                                    value={customShortcutLetter}
+                                    onChange={setCustomShortcutLetter}
+                                    validate={validateShortcutKey}
+                                    label={t('options.customShortcutKey')}
+                                    isDaylight={isDaylight}
+                                    theme={theme}
+                                />
+                                <div className="min-w-0">
+                                    <CustomSelect
+                                        value={customShortcutCommandId ?? ''}
+                                        onChange={(value) => setCustomShortcutCommandId(value || null)}
+                                        options={commandOptions}
+                                        ariaLabel={t('options.customShortcutCommand')}
+                                        placeholder={t('options.customShortcutNoCommand')}
+                                        isDaylight={isDaylight}
+                                        theme={theme}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-[11px] opacity-50 max-w-[420px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('options.customShortcutDesc')}
-                        </div>
-                    </div>
-                    {/* One row, two halves of one sentence: this key runs that command. The column
-                        captions are gone because the caps and the select already say which is which. */}
-                    <div className="grid items-center gap-3 sm:grid-cols-2">
-                        <ShortcutCaptureField
-                            value={customShortcutLetter}
-                            onChange={setCustomShortcutLetter}
-                            validate={validateShortcutKey}
-                            label={t('options.customShortcutKey')}
-                            isDaylight={isDaylight}
-                            theme={theme}
-                        />
-                        <div className="min-w-0">
-                            <CustomSelect
-                                value={customShortcutCommandId ?? ''}
-                                onChange={(value) => setCustomShortcutCommandId(value || null)}
-                                options={commandOptions}
-                                ariaLabel={t('options.customShortcutCommand')}
-                                placeholder={t('options.customShortcutNoCommand')}
-                                isDaylight={isDaylight}
-                                theme={theme}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </SettingsAnchor>
+                    </SettingsAnchor>
+                </>
+            )}
         </div>
     );
 };

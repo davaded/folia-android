@@ -36,7 +36,7 @@ node packaging/android/build-apk.mjs
 - 扫码自检中“Android 不可能运行本机 API”的检测，允许 APK 声明的同源原生代理，仍拒绝移动端误填的其他 localhost 服务。
 - 车机裁剪：构建脚本往 APK 内的 `runtime-config.js` 写入 `platform = 'android'`，
   前端据此（`isAndroidApkRuntime` / 命令面板的 `'android'` 平台）不提供 AI 主题推断、AI 分词与分词编辑器、
-  OBS 复制入口。歌曲主题固定为封面取色；Web 与桌面端不受影响。
+  OBS 复制入口，以及键盘快捷键、快捷命令与桌面窗口类入口。歌曲主题固定为封面取色；Web 与桌面端不受影响。
 
 Android 文件系统兼容脚本和调试诊断脚本仅注入 APK 内的 HTML 副本。
 
@@ -80,3 +80,8 @@ Gecko 的 OPFS 支持真实 FileSystemDirectoryHandle 持久化，但不提供 C
 不采集账号凭据、歌名、音乐内容或个人播放列表。
 
 设备安装、截图、导入、音频状态和后台运行的实际结果见本目录的 `DEVICE-VALIDATION.md`。
+
+## 改动记录
+
+Claude 对车机版的每次改动、验证结果和已发现但未处理的问题记录在 [CHANGES.md](CHANGES.md)，
+用于和 Codex 同步信息；接手前先看这份记录，改完也追加一条。

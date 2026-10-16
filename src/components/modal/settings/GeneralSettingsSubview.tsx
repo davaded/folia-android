@@ -17,6 +17,7 @@ import SettingsSectionHeading from './navigation/SettingsSectionHeading';
 import { settingsDividerClassFor } from './settingsCardClasses';
 import { useHomeLayoutSettingsStore } from '../../../stores/useHomeLayoutSettingsStore';
 import { useSettingsModalStore } from '../../../stores/useSettingsModalStore';
+import { isAndroidApkRuntime } from '../../../services/runtimeConfig';
 
 // src/components/modal/settings/GeneralSettingsSubview.tsx
 // Global app preferences that should stay independent from playback and desktop-only settings.
@@ -217,11 +218,14 @@ const GeneralSettingsSubview: React.FC<GeneralSettingsSubviewProps> = ({
                 />
             </SettingsAnchor>
 
-            <PinnedCommandSettings
-                isDaylight={isDaylight}
-                settingsCardClass={settingsCardClass}
-                theme={theme}
-            />
+            {/* 车机 APK 不提供快捷命令：命令窗口下方那一排也不显示（resolveVisiblePinnedCommandSlots）。 */}
+            {!isAndroidApkRuntime() && (
+                <PinnedCommandSettings
+                    isDaylight={isDaylight}
+                    settingsCardClass={settingsCardClass}
+                    theme={theme}
+                />
+            )}
 
             <PonderHintSettingsSection
                 settingsCardClass={settingsCardClass}

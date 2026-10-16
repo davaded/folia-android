@@ -1,5 +1,6 @@
 import { useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { isAndroidApkRuntime } from '../../services/runtimeConfig';
 
 // src/components/wall/WallToolsRows.tsx
 // 墙面工具面板（WallToolsButton）里的各种行：条目（动作 / 开关 / 滑条 / 分组小标题）与顶部那排纯图标快捷格。
@@ -166,7 +167,8 @@ export function WallToolsQuickRow({ actions, onDone }: { actions: readonly WallT
         <div role="group" className="lattice-tools-quick">
             {actions.map(action => {
                 const Icon = action.icon;
-                const tooltip = [action.label, action.status, action.kbd].filter(Boolean).join(' · ');
+                // 车机 APK 没有实体键盘，按键提示（「: + R」等）不写进提示文字。
+                const tooltip = [action.label, action.status, isAndroidApkRuntime() ? undefined : action.kbd].filter(Boolean).join(' · ');
                 return (
                     <button
                         key={action.id}
@@ -236,7 +238,7 @@ export function WallToolsRow({ entry, onDone }: { entry: WallToolsEntry; onDone:
             <Icon aria-hidden="true" />
             <span>{entry.label}</span>
             {entry.value !== undefined && <span className="lattice-tools-value">{entry.value}</span>}
-            {entry.kbd !== undefined && (entry.kbdHidden ? <kbd aria-hidden="true">{entry.kbd}</kbd> : <kbd>{entry.kbd}</kbd>)}
+            {entry.kbd !== undefined && !isAndroidApkRuntime() && (entry.kbdHidden ? <kbd aria-hidden="true">{entry.kbd}</kbd> : <kbd>{entry.kbd}</kbd>)}
         </button>
     );
 }

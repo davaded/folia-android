@@ -11,6 +11,7 @@ import { WallToolsQuickRow, WallToolsRow, type WallToolsEntry, type WallToolsQui
 import { useWallToolsCommonActions } from './useWallToolsCommonActions';
 import { WallToolsQueueIsland } from './WallToolsQueueIsland';
 import { useWallToolsHost } from './wallToolsHost';
+import { isAndroidApkRuntime } from '../../services/runtimeConfig';
 import './WallToolsButton.css';
 
 // src/components/wall/WallToolsButton.tsx
@@ -134,6 +135,8 @@ export function WallToolsSurface({ idPrefix, label, isDaylight, locate, destinat
 
     const panelId = `${idPrefix}-panel`;
     const helpId = `${idPrefix}-help`;
+    // 「操作提示」列的全是键盘操作（方向键、Enter、Ctrl+B……），车机 APK 没有实体键盘，不给这一块。
+    const showKeyboardHelp = !isAndroidApkRuntime();
     const queueIslandId = `${idPrefix}-queue-island`;
     const common = useWallToolsCommonActions({ queueIslandId });
     const showQueueIsland = isOpen && common.queueIslandShown && host !== null;
@@ -190,20 +193,22 @@ export function WallToolsSurface({ idPrefix, label, isDaylight, locate, destinat
                                     <span className={lightsOn ? 'is-active' : ''}>{t('home.latticeLightsOn')}</span>
                                     <span className={lightsOn ? '' : 'is-active'}>{t('home.latticeLightsOff')}</span>
                                 </button>
-                                <button
-                                    type="button"
-                                    role="menuitem"
-                                    className="lattice-tools-action lattice-tools-help-trigger"
-                                    aria-label={t('home.latticeHelp')}
-                                    title={t('home.latticeHelp')}
-                                    aria-expanded={showHelp}
-                                    aria-controls={helpId}
-                                    onClick={() => setShowHelp(visible => !visible)}
-                                >
-                                    <CircleHelp aria-hidden="true" />
-                                </button>
+                                {showKeyboardHelp && (
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="lattice-tools-action lattice-tools-help-trigger"
+                                        aria-label={t('home.latticeHelp')}
+                                        title={t('home.latticeHelp')}
+                                        aria-expanded={showHelp}
+                                        aria-controls={helpId}
+                                        onClick={() => setShowHelp(visible => !visible)}
+                                    >
+                                        <CircleHelp aria-hidden="true" />
+                                    </button>
+                                )}
                                 <AnimatePresence initial={false}>
-                                    {showHelp && (
+                                    {showKeyboardHelp && showHelp && (
                                         <motion.div
                                             id={helpId}
                                             role="note"

@@ -28,7 +28,8 @@ export const SETTINGS_ANCHOR_DEFINITIONS = {
     // bravais 独有的设置（透光、每块窗数、集合叠页边）：只在生效 suite 是 bravais 时渲染（isBravaisLibraryActive）。
     bravaisSettings: { section: 'general', labelKey: 'options.bravaisSettings', requiresBravaisSuite: true },
     bottomUiSettings: { section: 'general', labelKey: 'options.bottomUiSettings' },
-    pinnedCommands: { section: 'general', labelKey: 'options.pinnedCommands' },
+    // 车机 APK 不提供快捷命令（hiddenOnAndroid）。
+    pinnedCommands: { section: 'general', labelKey: 'options.pinnedCommands', hiddenOnAndroid: true },
     ponderHints: { section: 'general', labelKey: 'options.ponderHints' },
 
     // PlaybackSettingsSubview (TransitionSettingsSection renders inside it)
@@ -41,8 +42,9 @@ export const SETTINGS_ANCHOR_DEFINITIONS = {
 
     // InteractionSettingsSubview
     gridActionButton: { section: 'interaction', labelKey: 'options.gridActionButton' },
-    gridPaletteHotkey: { section: 'interaction', labelKey: 'options.gridPaletteHotkey' },
-    customShortcut: { section: 'interaction', labelKey: 'options.customShortcut' },
+    // 车机 APK 没有实体键盘，这两项在那里不渲染（hiddenOnAndroid）。
+    gridPaletteHotkey: { section: 'interaction', labelKey: 'options.gridPaletteHotkey', hiddenOnAndroid: true },
+    customShortcut: { section: 'interaction', labelKey: 'options.customShortcut', hiddenOnAndroid: true },
 
     // IntegrationSettingsSubview — stageMode is declared twice on purpose, the Electron and web
     // panels being mutually exclusive; it is still one destination.
@@ -75,7 +77,7 @@ export const SETTINGS_ANCHOR_DEFINITIONS = {
     // LabSettingsModal
     labPlayerUi: { section: 'lab', labelKey: 'options.labPlayerUiSection' },
     labWindowAndTools: { section: 'lab', labelKey: 'options.labWindowAndToolsSection' },
-} as const satisfies Record<string, { section: SettingsSubviewId; labelKey: string; electronOnly?: boolean; requiresLibrarySuiteChoice?: boolean; requiresBravaisSuite?: boolean }>;
+} as const satisfies Record<string, { section: SettingsSubviewId; labelKey: string; electronOnly?: boolean; hiddenOnAndroid?: boolean; requiresLibrarySuiteChoice?: boolean; requiresBravaisSuite?: boolean }>;
 
 export type SettingsAnchorId = keyof typeof SETTINGS_ANCHOR_DEFINITIONS;
 

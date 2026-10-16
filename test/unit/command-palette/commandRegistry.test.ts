@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PlayerState, type SongResult } from '../../../src/types';
-import { COMMAND_PALETTE_COMMANDS, getAvailableCommandPaletteCommands, getCommandPaletteMatches, getQueueSongMatches } from '../../../src/components/command-palette/commandRegistry';
+import { COMMAND_PALETTE_COMMANDS, getAvailableCommandPaletteCommands, getCommandPaletteMatches, getQueueSongMatches, isCommandPaletteCommandEnabled } from '../../../src/components/command-palette/commandRegistry';
+import { executeModeCommand } from '../../../src/components/command-palette/commands/executeModeCommand';
 import { sleepTimerSurface } from '../../../src/components/command-palette/surfaces/sleepTimerSurface';
 import { latticePosterTintSurface } from '../../../src/components/command-palette/surfaces/latticePosterTintSurface';
 import type { CommandPaletteContext } from '../../../src/components/command-palette/types';
@@ -694,8 +695,13 @@ describe('command palette registry', () => {
         }
     });
 
-    it('leaves AI theme source, OBS and lyric segmentation commands out of the car APK', () => {
-        const carOnlyHidden = ['theme-source-ai', 'theme-source-cover', 'settings-obs-copy-css', 'lyric-segmentation'];
+    it('leaves AI, OBS, segmentation, keyboard and desktop-window commands out of the car APK', () => {
+        const carOnlyHidden = [
+            'theme-source-ai', 'theme-source-cover', 'settings-obs-copy-css', 'lyric-segmentation',
+            // No keyboard, window title bar or mouse pointer in the car; the shell is already immersive.
+            'settings-custom-shortcut', 'settings-toggle-main-window-titlebar', 'settings-toggle-cursor-auto-hide',
+            'browser-fullscreen', 'settings-pinned-commands',
+        ];
         const availableIds = () => new Set(getAvailableCommandPaletteCommands().map(command => command.id));
 
         try {
@@ -704,11 +710,15 @@ describe('command palette registry', () => {
             carOnlyHidden.forEach(id => expect(apk.has(id)).toBe(false));
             // Cover-derived generation stays, and web-and-desktop commands are not 'android'.
             expect(apk.has('theme-generate-current')).toBe(true);
+            expect(apk.has('settings-grid-action-button')).toBe(true);
+            // Execute mode is hidden from every list; its `:` hotkey is what the platform gate turns off.
+            expect(isCommandPaletteCommandEnabled(executeModeCommand)).toBe(false);
             expect(apk.has('settings-desktop')).toBe(false);
 
             vi.stubGlobal('window', {});
             const web = availableIds();
             carOnlyHidden.forEach(id => expect(web.has(id)).toBe(true));
+            expect(isCommandPaletteCommandEnabled(executeModeCommand)).toBe(true);
 
             vi.stubGlobal('window', { electron: {} });
             const desktop = availableIds();

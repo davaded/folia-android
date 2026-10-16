@@ -24,6 +24,8 @@ export const navigationCommands: CommandPaletteCommand[] = [
         { isAvailable: context => !context || context.scope.view !== 'lattice', openHotkey: { key: 'b', ctrl: true }, executeShortcut: 'w' }),
     {
         id: 'browser-fullscreen',
+        // 车机 APK 已由壳层隐藏状态栏与导航栏，壳层也不接浏览器全屏。
+        platform: ['web', 'electron'],
         group: 'navigation',
         title: 'Fullscreen',
         description: 'Toggle browser fullscreen',
